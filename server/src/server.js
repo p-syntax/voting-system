@@ -6,14 +6,19 @@ import cors from 'cors';
 import helmet from 'helmet';
 //connecting to the database 
 import { connectDB,createAdmin } from './config/database.js';
-
+// import routes 
+import authRoutes from "./routes/authRoutes.js"
 
 // Load environment variables
 dotenv.config();
 
 // Create express app
 const app = express();
+// Allow JSON request bodies
+app.use(express.json());
 
+// importing created routes 
+app.use("/auth",authRoutes)
 // Create HTTP server
 const server = http.createServer(app);
 
@@ -42,8 +47,6 @@ app.use(
   })
 );
 
-// Allow JSON request bodies
-app.use(express.json());
 
 // Socket.IO connection handler
 io.on('connection', (socket) => {
