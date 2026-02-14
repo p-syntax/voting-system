@@ -1,4 +1,4 @@
-import { validateDescriptor } from "../utilis/faceMatch"
+import { validateDescriptor } from "../utilis/faceMatch.js"
 import {User} from "../models/user.js"
 export const voterRegistration = async(req,res) =>{
     try{
@@ -44,4 +44,48 @@ export const voterRegistration = async(req,res) =>{
         })
 
     }
+}
+export const getVoters=async(req,res)=>{
+    try{
+        const{page=1,limit=50,search} =req.query
+        const query ={role:'voter'}
+        if(search){
+            query.$or=[
+                {registrationNumber:{$regex:search,$options:'i'}},
+                {fullName:{$regex:search,$options:'i'}}
+            ]
+        }
+    
+        //fetching voter 
+        const voters = await User.find(query)
+        .select('-faceDescriptor')
+        .sort({ createdAt: -1 })
+        .limit(limit * 1)
+        .skip((page - 1) * limit);
+
+        const total = await User.countDocuments(query);
+
+        res.json({
+        success: true,
+        voters,
+        pagination: {
+            total,
+            page: parseInt(page),
+            pages: Math.ceil(total / limit),
+        },
+        });
+
+    }
+    catch (error) {
+    console.error('Get voters error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch voters',
+    });
+  }
+}
+// create contestant
+export const addContestant = async(req,res)=>{
+    
+    
 }
