@@ -41,6 +41,10 @@ const userSchema = new mongoose.Schema({
   votedAt: {
     type: Date,
   },
+    votedPositions: {
+    type: [String], 
+    default: [],
+  },
 }, {
   timestamps: true, // automatically adds createdAt & updatedAt
 });
