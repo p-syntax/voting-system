@@ -8,6 +8,8 @@ import helmet from 'helmet';
 import { connectDB,createAdmin } from './config/database.js';
 // import routes 
 import authRoutes from "./routes/authRoutes.js"
+import adminRoutes from "./routes/adminRoutes.js"
+import voterRoutes from "./routes/voterRoutes.js"
 
 // Load environment variables
 dotenv.config();
@@ -19,6 +21,8 @@ app.use(express.json());
 
 // importing created routes 
 app.use("/auth",authRoutes)
+app.use("/admin",adminRoutes)
+app.use("/voter",voterRoutes)
 // Create HTTP server
 const server = http.createServer(app);
 
