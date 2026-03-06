@@ -1,11 +1,11 @@
 import mongoose from "mongoose";
-import { User } from "../models/user";
-import { Contestant } from "../models/Contestants";
-import { VoteRecord } from "../models/vote";
+import { User } from "../models/user.js";
+import { Contestant } from "../models/Contestants.js";
+import { VoteRecord } from "../models/vote.js";
 
 // voting for a contestant route 
 export const Vote = async(req,res)=>{
-    const session = await moongoose.startSession()
+    const session = await mongoose.startSession()
     //ensures that all operation must be complete before updating the db 
     session.startTransaction();
 
@@ -23,15 +23,18 @@ export const Vote = async(req,res)=>{
     }
     //check if the voter has already voted 
     if(req.user.hasVoted){
-        res.status(403).json({
-            message:"user has already voted"
+        await session.abortTransaction();
+        return res.status(403).json({
+            message:"you have already completed voting"
         })
     }
     //find the contestant inside the transaction
-    const contestant = await Contestant.find(contestantId).session(session);
+    const contestant = await Contestant.findById(contestantId).session(session);
     if(!contestant){
+        await session.abortTransaction();
         res.status(400).json({
-            message:"contestant not available "
+            success:false,
+            error:"contestant not available "
         })
     }
     //prevent double voting for a single position 
@@ -40,7 +43,8 @@ export const Vote = async(req,res)=>{
         position:contestant.position,
     }).session(session)
     if(existingVote){
-        res.json({
+        await session.abortTransaction();
+        return res.json({
             error:`you have already voted for ${contestant.position}`
         })
     }
@@ -53,6 +57,7 @@ export const Vote = async(req,res)=>{
     //increament the contestant vote count 
     contestant.votes +=1;
     await contestant.save({session})
+    //track voted positions 
     await User.findByIdAndUpdate(
       voterId,
       { $addToSet: { votedPositions: contestant.position } },
@@ -71,6 +76,7 @@ export const Vote = async(req,res)=>{
     });
     }catch(errror){
         await session.abortTransaction();
+        console.error("vote error",error)
         res.status(500).json({
             success:false,
             error:"failed to vote",

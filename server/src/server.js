@@ -17,6 +17,7 @@ dotenv.config();
 // Create express app
 const app = express();
 // Allow JSON request bodies
+app.use(cors({ origin: "http://localhost:5173" }));
 app.use(express.json());
 
 // importing created routes 

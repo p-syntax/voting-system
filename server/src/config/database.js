@@ -47,7 +47,7 @@ export const  disconnectDB = async ()=>{
 //creating an initial admin 
 export const createAdmin = async ()=>{
     try{
-        const ExistingAdmin = User.findOne({role:'admin'});
+        const ExistingAdmin = await User.findOne({role:'admin'});
         if(!ExistingAdmin){
             const Admin = new User({
                 role:'admin',

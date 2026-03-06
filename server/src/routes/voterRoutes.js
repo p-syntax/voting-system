@@ -1,7 +1,7 @@
 import express from "express"
-import { Vote,getContestants,completeVoting, } from "../controllers/voterController"
-import { authenticate } from "../middlewares/authMiddleware"
-import { voter } from "../middlewares/authorizationMiddleware"
+import { Vote,getContestants,completeVoting, } from "../controllers/voterController.js"
+import { authenticate } from "../middlewares/authMiddleware.js"
+import { voter } from "../middlewares/authorizationMiddleware.js"
 const router =express.Router()
 router.use(authenticate,voter)
 

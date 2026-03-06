@@ -1,5 +1,5 @@
 import { validateDescriptor } from "../utilis/faceMatch.js"
-import {User,Contestant} from "../models/user.js"
+import {User} from "../models/user.js"
 import { Contestant } from "../models/Contestants.js";
 export const voterRegistration = async(req,res) =>{
     try{
@@ -193,17 +193,18 @@ export const addContestant = async(req,res)=>{
                 error:"contestant already exists "
             })
         }
-        const Contestant = new Contestant({
-            registrationNumber,
-            name,
-            image,
-            position,
-            department,
-        });
-        await Contestant.save()
-        res.status(201).json({
-            message:"contestant added successfully"
-        })
+    const contestant = new Contestant({
+      registrationNumber,
+      name,
+      image,
+      position,
+      department,
+    });
+    await contestant.save();
+    res.status(201).json({
+      message: 'contestant added successfully',
+      contestant: contestant,
+    });
 
     }catch(error){
         console.error("create contestant error",error);
@@ -213,7 +214,7 @@ export const addContestant = async(req,res)=>{
         });
     }   
 }
-export const getContestants = async (req, res) => {
+export const getContestant= async (req, res) => {
   try {
     const { search, page = 1, limit = 50 } = req.query;
 
