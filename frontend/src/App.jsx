@@ -12,10 +12,11 @@ import CheckPermission from './context/checkRole.jsx';
 
 // Voter Pages
 import VoterLogin from './pages/voter/login.jsx';
-import AdminLogin from './pages/Admin /login.jsx';
-import AdminDashboard from './pages/Admin /dashboard.jsx';
-import VoterRegistration from './pages/Admin /voterRegistration.jsx';
-
+import AdminLogin from './pages/Admin/login.jsx';
+import AdminDashboard from './pages/Admin/dashboard.jsx';
+import VoterRegistration from './pages/Admin/voterRegistration.jsx';
+import VotingPage from './pages/voter/votingPage.jsx';
+import AddContestant from './pages/Admin/ContestantRegistration.jsx';
 // import VotingInterface from './pages/voter/VotingInterface';
 // import ThankYou from './pages/voter/ThankYou';
 
@@ -23,34 +24,13 @@ import VoterRegistration from './pages/Admin /voterRegistration.jsx';
 
 function App() {
   return (
-    // <BrowserRouter>
-    //   {/* <AdminProvider>
-    //     <VoterProvider> */}
-    //       <Routes>
-    //         {/* Default Route - Voter Login */}
-    //         <Route path='/' element={<VoterLogin />} />
-            
-    //         {/* Voter Routes */}
-    //         <Route path='/vote' element={<VotingInterface />} />
-    //         <Route path='/thank-you' element={<ThankYou />} />
-            
-    //         {/* Admin Routes */}
-    //         <Route path='/admin/login' element={<AdminLogin />} />
-    //         <Route path='/admin/dashboard' element={<AdminDashboard />} />
-    //         <Route path='/admin/voters' element={<div>Voters Management</div>} />
-    //         <Route path='/admin/contestants' element={<div>Contestants Management</div>} />
-    //         <Route path='/admin/results' element={<div>Results</div>} />
-            
-    //         {/* 404 Redirect */}
-    //         <Route path='*' element={<Navigate to='/' replace />} />
-    //       </Routes>
-    //     </VoterProvider>
-    // //   </AdminProvider>
-    // // </BrowserRouter>
+    
    
       <Routes>
             {/* Default Route - Voter Login */}
             <Route path='/' element={<VoterLogin />} />
+             {/* Default Route - Voter Login */}
+            <Route path='/votingPage' element={<VotingPage/>} />
            
             {/*admin routes */}
             <Route path='/admin/login' element={<AdminLogin />} />
@@ -59,6 +39,14 @@ function App() {
               element={
                 <CheckPermission allowedRoles={["admin"]}>
                   <VoterRegistration />
+                </CheckPermission>
+              }
+            />
+            <Route
+              path='/admin/AddContestant'
+              element={
+                <CheckPermission allowedRoles={["admin"]}>
+                  <AddContestant/>
                 </CheckPermission>
               }
             />
