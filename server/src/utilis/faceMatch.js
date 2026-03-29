@@ -43,8 +43,10 @@ export const FaceMatch = (capturedDescriptor, storedDescriptor, Threshold) => {
     }
     // calculate the distance between the two descriptors
     const distance = CalculateDistance(capturedDescriptor, storedDescriptor);
+    console.log(distance )
     // boolean to check if its a match
     const isMatch = distance < Threshold;
+   
     return {
         isMatch,
         distance,
