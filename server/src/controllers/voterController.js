@@ -73,14 +73,16 @@ export const Vote = async(req,res)=>{
         name: contestant.name,
         position: contestant.position,
     },
+    endTime: req.votingWindow.endTime // 👈 ADD THIS
+
     });
-    }catch(errror){
+    }catch(error){
         await session.abortTransaction();
         console.error("vote error",error)
         res.status(500).json({
             success:false,
             error:"failed to vote",
-            message:errorMonitor.message,  
+          
              })
     }finally{
         session.endSession();
@@ -129,6 +131,8 @@ export const getContestants = async(req,res)=>{
       success: true,
       positions,
       votedPositions,
+      endTime: req.votingWindow.endTime 
+
     });
 
   } catch (error) {
@@ -159,7 +163,9 @@ export const completeVoting = async (req,res)=>{
         });
         res.json({
             success:true,
-            message:"voting completed successfully "
+            message:"voting completed successfully ",
+            endTime: req.votingWindow.endTime 
+
         })
     }catch(error){
         console.error('complete voting error')
