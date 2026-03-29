@@ -1,40 +1,35 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
+import toast from "react-hot-toast";
 
-const Contestants = () => {
-  const { user, logout } = useAuth();
-  
+const Contestants = ({ onAddContestant }) => {
+  const { user } = useAuth();
+
   const [contestants, setContestants] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [search, setSearch] = useState("");
-  const [pagination, setPagination] = useState({
-    total: 0,
-    pages: 1,
-    page: 1,
-  });
-  const limit = 50;
+  const [pagination, setPagination] = useState({ total: 0, pages: 1, page: 1 });
 
-  // -----------------------------
-  // FETCH CONTESTANTS
-  // -----------------------------
+  const [editingContestant, setEditingContestant] = useState(null);
+  const [editForm, setEditForm] = useState({
+    name: "",
+    position: "",
+    department: "",
+    party: "",
+  });
+
+  const limit = 50;
 
   const fetchContestants = async (pageNum = 1, searchTerm = "") => {
     setLoading(true);
     setError("");
-    setSuccess("");
-
     try {
       const token = localStorage.getItem("adminToken");
-
       let url = `http://localhost:5555/admin/getContestant?page=${pageNum}&limit=${limit}`;
-      if (searchTerm) {
-        url += `&search=${encodeURIComponent(searchTerm)}`;
-      }
+      if (searchTerm) url += `&search=${encodeURIComponent(searchTerm)}`;
 
       const res = await fetch(url, {
-        method: "GET",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -42,17 +37,10 @@ const Contestants = () => {
       });
 
       const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to fetch contestants");
-      }
+      if (!res.ok) throw new Error(data.error);
 
       setContestants(data.contestants || []);
       setPagination(data.pagination || { total: 0, pages: 1, page: pageNum });
-
-      if (data.contestants && data.contestants.length > 0) {
-        setSuccess(`Loaded ${data.contestants.length} contestants`);
-      }
     } catch (err) {
       setError(err.message);
       setContestants([]);
@@ -61,307 +49,259 @@ const Contestants = () => {
     }
   };
 
-  // Initial fetch
   useEffect(() => {
     fetchContestants(1, "");
   }, []);
 
-  // Restrict non-admins
-  if (!user || user.role !== "admin") {
-    return (
-      <div className="flex items-center justify-center h-screen text-red-500 text-lg font-semibold">
-        ❌ Access Denied — Admins Only
-      </div>
+  const handleDeleteContestant = async (contestant) => {
+    const token = localStorage.getItem("adminToken");
+
+    // ✅ confirm first (simple “alert before deleting”)
+    const ok = window.confirm(
+      `You are about to delete:\n\nName: ${contestant.name}\nReg No: ${contestant.registrationNumber}\nPosition: ${contestant.position}\n\nContinue?`
     );
-  }
+    if (!ok) return;
 
- 
+    try {
+      const res = await fetch(
+        `http://localhost:5555/admin/deleteContestant/${contestant._id}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-  // Handle search
-  const handleSearch = (e) => {
-    const value = e.target.value;
-    setSearch(value);
-    setPagination(prev => ({ ...prev, page: 1 }));
-    fetchContestants(1, value);
-  };
+      const data = await res.json().catch(() => ({}));
 
-  // Handle page change
-  const handlePageChange = (newPage) => {
-    if (newPage > 0 && newPage <= pagination.pages) {
-      setPagination(prev => ({ ...prev, page: newPage }));
-      fetchContestants(newPage, search);
+      if (!res.ok) {
+        throw new Error(data.error || data.message || "Failed to delete contestant");
+      }
+
+      toast.success(data.message || "Contestant deleted");
+      setContestants((prev) =>
+        prev.filter((item) => item._id !== contestant._id)
+      );
+    } catch (err) {
+      toast.error(err.message || "Delete failed");
     }
   };
 
-  // Clear search
-  const handleClearSearch = () => {
-    setSearch("");
-    setPagination(prev => ({ ...prev, page: 1 }));
-    fetchContestants(1, "");
+  const handleEditContestant = (contestant) => {
+    setEditingContestant(contestant);
+    setEditForm({
+      name: contestant.name,
+      position: contestant.position,
+      department: contestant.department,
+      party: contestant.party,
+    });
   };
 
+  const handleEditChange = (e) => {
+    setEditForm({ ...editForm, [e.target.name]: e.target.value });
+  };
+
+  const handleUpdateSubmit = async () => {
+    try {
+      const token = localStorage.getItem("adminToken");
+      const res = await fetch(
+        `http://localhost:5555/admin/updateContestant/${editingContestant._id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(editForm),
+        }
+      );
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || data.message || "Update failed");
+
+      setEditingContestant(null);
+      fetchContestants(pagination.page, search);
+      toast.success("Contestant updated");
+    } catch (err) {
+      toast.error(err.message || "Update failed");
+    }
+  };
+
+  if (!user || user.role !== "admin") {
+    return <div className="app-alertError">Access denied. Admins only.</div>;
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4 sm:px-6 lg:px-8">
-      
-      {/* Header Section */}
-      <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">
-              Contestants Management
-            </h1>
-            <p className="text-gray-600 mt-2">
-              View and manage all registered contestants for voting positions
-            </p>
+    <div>
+      <div className="flex items-start justify-between gap-4 mb-4 flex-wrap">
+        <div className="w-full flex flex-wrap items-end justify-between gap-3">
+          <div className="w-full max-w-md">
+            <label className="app-label">Search</label>
+            <input
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                fetchContestants(1, e.target.value);
+              }}
+              placeholder="Search by name, position, department"
+              className="app-input"
+            />
           </div>
+
           <button
-            onClick={logout}
-            className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-lg shadow-md transition duration-200 ease-in-out transform hover:scale-105"
+            type="button"
+            onClick={() => onAddContestant?.()}
+            className="app-btnPrimary whitespace-nowrap"
           >
-            🚪 Logout
+            Add contestant
           </button>
         </div>
+      </div>
 
-        {/* Main Content Card */}
-        <div className="bg-white shadow-xl rounded-lg p-6 sm:p-8">
-          
-          {/* Messages Section */}
-          {error && (
-            <div className="mb-4 p-4 bg-red-100 border-l-4 border-red-500 text-red-700 rounded">
-              <p className="font-semibold">❌ Error</p>
-              <p>{error}</p>
-            </div>
-          )}
-          
-          {success && (
-            <div className="mb-4 p-4 bg-green-100 border-l-4 border-green-500 text-green-700 rounded">
-              <p className="font-semibold">✅ Success</p>
-              <p>{success}</p>
-            </div>
-          )}
+      {error && <div className="app-alertError mb-4">{error}</div>}
 
-          {/* Search Bar Section */}
-          <div className="mb-6 flex flex-col sm:flex-row gap-3">
-            <div className="flex-1 relative">
-              <input
-                type="text"
-                placeholder="🔍 Search by name, position, department or registration number..."
-                value={search}
-                onChange={handleSearch}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
-              />
-            </div>
-            {search && (
-              <button
-                onClick={handleClearSearch}
-                className="px-4 py-3 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold rounded-lg transition"
-              >
-                Clear
-              </button>
-            )}
-          </div>
+      {loading ? (
+        <div className="app-card p-8">
+          <p className="text-sm font-semibold text-slate-600">
+            Loading contestants...
+          </p>
+        </div>
+      ) : (
+        <>
+          <div className="app-tableWrap">
+            <table className="app-table">
+              <thead>
+                <tr>
+                  <th className="app-th w-10">#</th>
+                  <th className="app-th">Reg No</th>
+                  <th className="app-th">Name</th>
+                  <th className="app-th">Position</th>
+                  <th className="app-th">Department</th>
+                  <th className="app-th">Party</th>
+                  <th className="app-th">Image</th>
+                  <th className="app-th">Actions</th>
+                </tr>
+              </thead>
 
-          {/* Stats Section */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-            <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
-              <p className="text-gray-600 text-sm">Total Contestants</p>
-              <p className="text-2xl font-bold text-blue-600">{pagination.total}</p>
-            </div>
-            <div className="bg-purple-50 p-4 rounded-lg border-l-4 border-purple-500">
-              <p className="text-gray-600 text-sm">Current Page</p>
-              <p className="text-2xl font-bold text-purple-600">{pagination.page}</p>
-            </div>
-            <div className="bg-green-50 p-4 rounded-lg border-l-4 border-green-500">
-              <p className="text-gray-600 text-sm">Total Pages</p>
-              <p className="text-2xl font-bold text-green-600">{pagination.pages}</p>
-            </div>
-          </div>
-
-          {/* Loading State */}
-          {loading && (
-            <div className="flex flex-col items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
-              <p className="text-gray-600 font-semibold">Loading contestants...</p>
-            </div>
-          )}
-
-          {/* Table Section */}
-          {!loading && contestants.length > 0 && (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-100 border-b-2 border-gray-300">
-                  <tr>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-800">
-                      #
-                    </th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-800">
-                      Registration Number
-                    </th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-800">
-                      Name
-                    </th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-800">
-                      Position
-                    </th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-800">
-                      Department
-                    </th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-800">
-                      Image
-                    </th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-800">
-                      Added Date
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {contestants.map((contestant, index) => (
-                    <tr
-                      key={contestant._id}
-                      className="border-b border-gray-200 hover:bg-blue-50 transition"
+              <tbody>
+                {contestants.length === 0 ? (
+                  <tr className="app-tr">
+                    <td
+                      colSpan={8}
+                      className="app-td text-center py-14 text-slate-500 font-semibold"
                     >
-                      <td className="px-4 py-3 text-gray-700 font-semibold">
-                        {(pagination.page - 1) * limit + index + 1}
+                      No contestants found
+                    </td>
+                  </tr>
+                ) : (
+                  contestants.map((c, i) => (
+                    <tr key={c._id} className="app-tr app-trHover">
+                      <td className="app-td text-slate-600 font-semibold">
+                        {i + 1}
                       </td>
-                      <td className="px-4 py-3">
-                        <span className="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-xs font-semibold">
-                          {contestant.registrationNumber}
+                      <td className="app-td font-mono text-xs text-slate-700 font-bold">
+                        {c.registrationNumber}
+                      </td>
+                      <td className="app-td font-extrabold text-slate-900">
+                        {c.name}
+                      </td>
+                      <td className="app-td">
+                        <span className="inline-flex items-center rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-xs font-extrabold text-brand-800">
+                          {c.position}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-gray-800 font-medium">
-                        {contestant.name}
+                      <td className="app-td font-semibold">{c.department}</td>
+                      <td className="app-td font-semibold">{c.party}</td>
+                      <td className="app-td">
+                        <img
+                          src={c.image}
+                          alt={c.name}
+                          className="w-14 h-14 rounded-full object-cover border border-slate-100"
+                        />
                       </td>
-                      <td className="px-4 py-3">
-                        <span className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-semibold">
-                          {contestant.position}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="px-3 py-1 bg-cyan-100 text-cyan-800 rounded-full text-xs font-semibold">
-                          {contestant.department}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        {contestant.image ? (
-                          <a
-                            href={contestant.image}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-block"
+
+                      <td className="app-td">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <button
+                            onClick={() => handleEditContestant(c)}
+                            className="app-btnOutline"
                           >
-                            <div className="w-10 h-10 rounded-lg overflow-hidden border-2 border-gray-300 hover:border-blue-500 transition cursor-pointer">
-                              <img
-                                src={contestant.image}
-                                alt={contestant.name}
-                                className="w-full h-full object-cover"
-                                onError={(e) => {
-                                  e.target.style.display = "none";
-                                  e.target.nextSibling.style.display = "flex";
-                                }}
-                              />
-                              <div
-                                className="w-full h-full bg-gray-300 flex items-center justify-center text-gray-600 text-xs"
-                                style={{ display: "none" }}
-                              >
-                                N/A
-                              </div>
-                            </div>
-                          </a>
-                        ) : (
-                          <span className="px-3 py-1 bg-gray-200 text-gray-600 rounded text-xs font-semibold">
-                            No Image
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-gray-600 text-xs">
-                        {contestant.createdAt ? (
-                          new Date(contestant.createdAt).toLocaleDateString("en-US", {
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                          })
-                        ) : (
-                          <span className="text-gray-400">N/A</span>
-                        )}
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteContestant(c)}
+                            className="app-btnOutline text-red-700 hover:bg-red-50"
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
 
-          {/* Empty State */}
-          {!loading && contestants.length === 0 && !error && (
-            <div className="flex flex-col items-center justify-center py-12">
-              <p className="text-4xl mb-4">📭</p>
-              <p className="text-gray-600 font-semibold text-lg">
-                No contestants found
-              </p>
-              <p className="text-gray-500 mt-2">
-                {search ? "Try adjusting your search criteria" : "There are no registered contestants yet"}
+          {pagination.total > 0 && (
+            <p className="text-xs text-slate-600 mt-3 text-right font-semibold">
+              Showing {contestants.length} of {pagination.total} contestants
+            </p>
+          )}
+        </>
+      )}
+
+      {editingContestant && (
+        <div className="app-modalOverlay">
+          <div className="app-modalPanel">
+            <div className="px-6 py-5 bg-brand-50/60 border-b border-slate-100">
+              <h2 className="text-lg font-extrabold text-slate-900">
+                Edit contestant
+              </h2>
+              <p className="text-sm text-slate-600 font-semibold mt-1">
+                Update the details below
               </p>
             </div>
-          )}
 
-          {/* Pagination Section */}
-          {!loading && contestants.length > 0 && (
-            <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-gray-50 rounded-lg">
-              <div className="text-gray-600 text-sm">
-                Showing <span className="font-semibold">{contestants.length}</span> of{" "}
-                <span className="font-semibold">{pagination.total}</span> contestants
-              </div>
-              
-              <div className="flex items-center gap-2 flex-wrap justify-center">
-                <button
-                  onClick={() => handlePageChange(pagination.page - 1)}
-                  disabled={pagination.page === 1}
-                  className="px-4 py-2 bg-gray-300 hover:bg-gray-400 disabled:bg-gray-200 disabled:cursor-not-allowed text-gray-800 font-semibold rounded-lg transition"
-                >
-                  ⬅️ Previous
-                </button>
-                
-                <div className="flex items-center gap-2">
-                  {Array.from({ length: Math.min(5, pagination.pages) }, (_, i) => {
-                    let pageNum;
-                    if (pagination.pages <= 5) {
-                      pageNum = i + 1;
-                    } else if (pagination.page <= 3) {
-                      pageNum = i + 1;
-                    } else if (pagination.page >= pagination.pages - 2) {
-                      pageNum = pagination.pages - 4 + i;
-                    } else {
-                      pageNum = pagination.page - 2 + i;
-                    }
-                    
-                    return (
-                      <button
-                        key={pageNum}
-                        onClick={() => handlePageChange(pageNum)}
-                        className={`px-3 py-2 rounded-lg font-semibold transition ${
-                          pagination.page === pageNum
-                            ? "bg-blue-600 text-white"
-                            : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-                        }`}
-                      >
-                        {pageNum}
-                      </button>
-                    );
-                  })}
+            <div className="px-6 py-6 flex flex-col gap-4">
+              {[
+                { label: "Full Name", name: "name", placeholder: "Contestant full name" },
+                { label: "Position", name: "position", placeholder: "e.g. President" },
+                { label: "Department", name: "department", placeholder: "e.g. Computer Science" },
+                { label: "Party", name: "party", placeholder: "e.g. Progressive Alliance" },
+              ].map(({ label, name, placeholder }) => (
+                <div key={name}>
+                  <label className="app-label">{label}</label>
+                  <input
+                    name={name}
+                    value={editForm[name]}
+                    onChange={handleEditChange}
+                    placeholder={placeholder}
+                    className="app-input"
+                  />
                 </div>
-                
+              ))}
+
+              <div className="flex gap-3 pt-2">
                 <button
-                  onClick={() => handlePageChange(pagination.page + 1)}
-                  disabled={pagination.page === pagination.pages}
-                  className="px-4 py-2 bg-gray-300 hover:bg-gray-400 disabled:bg-gray-200 disabled:cursor-not-allowed text-gray-800 font-semibold rounded-lg transition"
+                  onClick={() => setEditingContestant(null)}
+                  className="app-btnOutline flex-1"
                 >
-                  Next ➡️
+                  Cancel
+                </button>
+                <button
+                  onClick={handleUpdateSubmit}
+                  className="app-btnPrimary flex-1"
+                >
+                  Save changes
                 </button>
               </div>
             </div>
-          )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
