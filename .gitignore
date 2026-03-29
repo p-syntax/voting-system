@@ -1,0 +1,10 @@
+nano .gitignore
+```
+
+Add this:
+```
+node_modules/
+.env
+.vscode/
+dist/
+build/
