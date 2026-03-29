@@ -19,6 +19,7 @@ const app = express();
 // Allow JSON request bodies
 app.use(cors({ origin: "http://localhost:5173" }));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // importing created routes 
 app.use("/auth",authRoutes)
@@ -52,6 +53,16 @@ app.use(
   })
 );
 
+
+// Generic error handler - ensure JSON responses for errors (prevents HTML error pages)
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  if (res.headersSent) return next(err);
+  res.status(err.status || 500).json({
+    success: false,
+    error: err.message || 'Internal Server Error',
+  });
+});
 
 // Socket.IO connection handler
 io.on('connection', (socket) => {
