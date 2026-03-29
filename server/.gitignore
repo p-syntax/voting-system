@@ -1,0 +1,6 @@
+nano .gitignore
+```
+Add:
+```
+node_modules/
+.env
