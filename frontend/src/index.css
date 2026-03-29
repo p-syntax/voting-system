@@ -1,3 +1,123 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  html,
+  body {
+    font-family: "DM Sans", Inter, system-ui, "Segoe UI", Roboto, Arial, sans-serif;
+  }
+}
+
+@layer components {
+  .app-page {
+    @apply min-h-screen bg-slate-100;
+  }
+
+  .app-container {
+    @apply max-w-6xl mx-auto px-4 sm:px-6;
+  }
+
+  .app-title {
+    @apply text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900;
+  }
+
+  .app-subtitle {
+    @apply text-sm text-slate-600;
+  }
+
+  .app-card {
+    @apply rounded-2xl border border-slate-100 shadow-sm overflow-hidden;
+    background-color: rgba(255, 255, 255, 0.96);
+  }
+
+  .app-cardTint {
+    @apply rounded-2xl border border-slate-100 shadow-sm overflow-hidden;
+    background-color: rgba(243, 253, 238, 0.55);
+  }
+
+  .app-alert {
+    @apply rounded-xl border px-4 py-3 text-sm font-medium;
+  }
+
+  .app-alertError {
+    @apply app-alert bg-danger-50 border-danger-200 text-danger-700;
+  }
+
+  .app-alertSuccess {
+    @apply app-alert bg-brand-50 border-brand-200 text-brand-800;
+  }
+
+  .app-label {
+    @apply block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5;
+  }
+
+  .app-input {
+    @apply w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900
+    placeholder-slate-400 shadow-sm
+    focus:outline-none focus:ring-2 focus:ring-brand-200 focus:border-brand-400;
+  }
+
+  .app-inputSoft {
+    @apply w-full rounded-xl border border-brand-100 bg-brand-50/40 px-4 py-2.5 text-sm text-slate-900
+    placeholder-slate-400
+    focus:outline-none focus:ring-2 focus:ring-brand-200 focus:border-brand-400;
+  }
+
+  .app-btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold
+    border border-transparent transition-colors;
+  }
+
+  .app-btnPrimary {
+    @apply app-btn bg-brand-500 text-white hover:bg-brand-600;
+  }
+
+  .app-btnOutline {
+    @apply app-btn bg-white text-brand-800 border border-brand-200 hover:bg-brand-50;
+  }
+
+  .app-btnDanger {
+    @apply app-btn bg-danger-700 text-white hover:bg-danger-800 border border-danger-700;
+  }
+
+  .app-btnDisabled {
+    @apply app-btn bg-slate-200 text-slate-500 cursor-not-allowed;
+  }
+
+  .app-tableWrap {
+    @apply app-card overflow-hidden;
+  }
+
+  .app-table {
+    @apply w-full text-sm;
+    background-color: rgba(255, 255, 255, 0.9);
+  }
+
+  .app-th {
+    @apply px-5 py-3 text-left text-xs font-extrabold uppercase tracking-wider text-white;
+    background-color: #66c743;
+  }
+
+  .app-td {
+    @apply px-5 py-3.5 text-slate-700;
+  }
+
+  .app-tr {
+    @apply border-t border-slate-100;
+  }
+
+  .app-trHover {
+    @apply hover:bg-brand-50/30;
+  }
+
+  .app-modalOverlay {
+    @apply fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 px-4;
+  }
+
+  .app-modalPanel {
+    @apply w-full max-w-md app-card;
+  }
+}
