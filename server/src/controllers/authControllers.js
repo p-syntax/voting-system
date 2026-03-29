@@ -38,6 +38,7 @@ export const voterLogin = async (req,res)=>{
         }
         // find voter by registration number 
     const voter = await User.findVoter(registrationNumber);
+
         if(!voter){
             return res.status(404).json({
                 success: false,
@@ -58,7 +59,7 @@ export const voterLogin = async (req,res)=>{
             })
         }
         //match the face descriptor 
-        const faceThreshold = parseFloat(process.env.FACE_MATCH_THRESHOLD) || 0.6;
+        const faceThreshold = parseFloat(process.env.FACE_MATCH_THRESHOLD) || 0.1;
         const matchFace = FaceMatch(faceDescriptor, voter.faceDescriptor, faceThreshold);
         if(!matchFace.isMatch){
             return res.status(401).json({
@@ -78,7 +79,7 @@ export const voterLogin = async (req,res)=>{
         console.error("voter login error ")
         res.status(500).json({
             success:false,
-            error:'login failed '
+            error:error.message 
         })
     }
    
