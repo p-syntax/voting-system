@@ -1,6 +1,7 @@
 import { validateDescriptor } from "../utilis/faceMatch.js"
 import {User} from "../models/user.js"
 import { Contestant } from "../models/Contestants.js";
+import { VotingWindow } from "../models/setVoteTime.js";
 export const voterRegistration = async(req,res) =>{
     try{
         const {faceDescriptor,fullName,registrationNumber} = req.body;
@@ -177,43 +178,110 @@ export const updateVoter = async (req, res) => {
   }
 };
 // create contestant
-export const addContestant = async(req,res)=>{
-    try{
-        const{registrationNumber,name,image,position,department} = req.body;
+export const addContestant = async (req, res) => {
+  try {
+    const { registrationNumber, name, position, department, party } = req.body;
 
-        //validate required  fields 
-        if(!registrationNumber || !name || !image ||!position || !department){
-            return res.status(400).json({
-                error:'All fields are required '
-            });
-        }
-        const existingContestant = await Contestant.findOne({registrationNumber});
-        if(existingContestant){
-            return res.status(400).json({
-                error:"contestant already exists "
-            })
-        }
+    // Validate required fields
+    if (!registrationNumber || !name || !position || !department || !party) {
+      return res.status(400).json({
+        error: "All fields including party are required",
+      });
+    }
+
+    console.log("BODY:", req.body);
+
+    // Validate image
+    if (!req.file) {
+      return res.status(400).json({
+        error: "Image is required",
+      });
+    }
+
+    // Check if contestant already exists
+    const existingContestant = await Contestant.findOne({ registrationNumber });
+    if (existingContestant) {
+      return res.status(400).json({ error: "Contestant already exists" });
+    }
+
+    // Cloudinary image URL
+    const imageUrl = req.file.path;
+    console.log("FILE:", req.file);
+
     const contestant = new Contestant({
       registrationNumber,
       name,
-      image,
+      image: imageUrl,
       position,
       department,
-    });
-    await contestant.save();
-    res.status(201).json({
-      message: 'contestant added successfully',
-      contestant: contestant,
+      party,
     });
 
-    }catch(error){
-        console.error("create contestant error",error);
-        res.status(500).json({
-            error:"failed to create contestant",
-            message:error.message,
+    await contestant.save();
+
+    res.status(201).json({
+      message: "Contestant added successfully",
+      contestant,
+    });
+  } catch (error) {
+    console.error("Add contestant error:", error);
+    res.status(500).json({
+      error: "Failed to create contestant",
+      message: error.message,
+    });
+  }
+};
+export const updateContestant = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { registrationNumber, name, position, department, party } = req.body;
+
+    // Check if contestant exists
+    const contestant = await Contestant.findById(id);
+    if (!contestant) {
+      return res.status(404).json({
+        error: "Contestant not found",
+      });
+    }
+
+    // If registrationNumber is being updated, check uniqueness
+    if (registrationNumber && registrationNumber !== contestant.registrationNumber) {
+      const existing = await Contestant.findOne({ registrationNumber });
+      if (existing) {
+        return res.status(400).json({
+          error: "Registration number already in use",
         });
-    }   
-}
+      }
+    }
+
+    // Update fields (only if provided)
+    if (registrationNumber) contestant.registrationNumber = registrationNumber;
+    if (name) contestant.name = name;
+    if (position) contestant.position = position;
+    if (department) contestant.department = department;
+    if (party) contestant.party = party;
+
+    // Handle image update (optional)
+    if (req.file) {
+      contestant.image = req.file.path;
+    }
+
+   
+    await contestant.save();
+
+    res.status(200).json({
+      message: "Contestant updated successfully",
+      contestant,
+    });
+
+  } catch (error) {
+    console.error("Update contestant error:", error);
+    res.status(500).json({
+      error: "Failed to update contestant",
+      message: error.message,
+    });
+  }
+};
 export const getContestant= async (req, res) => {
   try {
     const { search, page = 1, limit = 50 } = req.query;
@@ -260,3 +328,44 @@ export const getContestant= async (req, res) => {
     });
   }
 };
+// controllers/adminController.js
+export const deleteContestant = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const deleted = await Contestant.findByIdAndDelete(id);
+    if (!deleted) {
+      return res.status(404).json({ error: "Contestant not found" });
+    }
+
+    return res.json({ message: "Contestant deleted successfully" });
+  } catch (err) {
+    return res.status(500).json({ error: err.message || "Server error" });
+  }
+};
+export const setVotingTime = async(req,res) => {
+  const {startTime,endTime} = req.body;
+  if(!startTime || !endTime){
+    return res.status(400).json({
+      error:"start time and endtime are required "
+    })
+  }
+  if(new Date(startTime) >=new Date(endTime)){
+    return res.status(400).json({error:"start time must be before endtime "})
+  }
+  try{
+    const window = await VotingWindow.findOneAndUpdate(
+      {singleton:"voting_window"},
+
+      {startTime:new Date(startTime),
+        endTime:new Date(endTime)
+      },
+      {upsert:true,new:true,setDefaultsOnInsert:true}
+    )
+    res.json({
+      message:"voting window set successfully "
+    })
+  }catch(err){
+    res.status(500).json({error:err.message})
+  }
+}
