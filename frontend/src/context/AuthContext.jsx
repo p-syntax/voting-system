@@ -19,7 +19,8 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     try {
       if (typeof window === "undefined") return null;
-      const token = localStorage.getItem("adminToken") || localStorage.getItem("voterToken");
+      const token =
+        localStorage.getItem("adminToken") || localStorage.getItem("voterToken");
       return safeDecode(token);
     } catch {
       return null;
@@ -43,7 +44,7 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem("adminToken");
     localStorage.removeItem("voterToken");
-    setUser(null);
+    setUser(null); 
   };
 
   return (
