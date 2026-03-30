@@ -328,7 +328,7 @@ export const getContestant= async (req, res) => {
     });
   }
 };
-// controllers/adminController.js
+// cdeleting a voter 
 export const deleteContestant = async (req, res) => {
   try {
     const { id } = req.params;
