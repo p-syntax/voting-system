@@ -47,17 +47,6 @@ const server = http.createServer(app);
 // Get port
 const PORT = process.env.PORT ;
 
-// Initialize Socket.IO
-const io = new SocketIOServer(server, {
-  cors: {
-    origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
-    methods: ['GET', 'POST'],
-    credentials: true,
-  },
-});
-
-// Make socket.io globally accessible
-global.io = io;
 
 // Security middleware
 app.use(helmet());
@@ -75,24 +64,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Socket.IO connection handler
-io.on('connection', (socket) => {
-  console.log(`Client connected: ${socket.id}`);
 
-  socket.on('subscribe:results', () => {
-    socket.join('results-room');
-    console.log(`Client ${socket.id} subscribed to results`);
-  });
-
-  socket.on('unsubscribe:results', () => {
-    socket.leave('results-room');
-    console.log(`Client ${socket.id} unsubscribed from results`);
-  });
-
-  socket.on('disconnect', () => {
-    console.log(`Client disconnected: ${socket.id}`);
-  });
-});
 
 // Start server
 const startServer = async () => {
