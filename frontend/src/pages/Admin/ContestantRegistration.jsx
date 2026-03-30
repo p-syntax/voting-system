@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 
-const AddContestant = () => {
+const AddContestant = ({onSuccess}) => {
   const { user } = useAuth();
 
   const [form, setForm] = useState({
@@ -76,6 +76,7 @@ const AddContestant = () => {
         party: "",
       });
       setPreview(null);
+      if (onSuccess) onSuccess();
     } catch (err) {
       setError(err.message);
     } finally {
