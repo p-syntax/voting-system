@@ -73,7 +73,7 @@ export const Vote = async(req,res)=>{
         name: contestant.name,
         position: contestant.position,
     },
-    endTime: req.votingWindow.endTime // 👈 ADD THIS
+    endTime: req.votingWindow.endTime 
 
     });
     }catch(error){
