@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import * as faceapi from "face-api.js";
 import toast from "react-hot-toast";
 
@@ -66,10 +65,10 @@ const IconCheck = ({ className = "w-4 h-4" }) => (
   </svg>
 );
 
-const VoterRegistration = () => {
+const VoterRegistration = ({onRegistered}) => {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
-  const navigate = useNavigate();
+  
 
   const [registrationNumber, setRegistrationNumber] = useState("");
   const [fullName, setFullName] = useState("");
@@ -172,7 +171,7 @@ const VoterRegistration = () => {
       if (!res.ok) throw new Error(data.error || data.message);
 
       alert("Voter registered successfully!");
-      navigate("/admin/dashboard");
+      if (onRegistered) onRegistered();
     } catch (err) {
       setError(err.message);
     } finally {
