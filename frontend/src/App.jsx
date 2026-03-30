@@ -5,6 +5,7 @@ import VoterLogin from './pages/voter/login.jsx';
 import AdminLogin from './pages/Admin/login.jsx';
 import AdminDashboard from './pages/Admin/dashboard.jsx';
 import VotingPage from './pages/voter/votingPage.jsx';
+import ThankYou from "./pages/voter/thank-you.jsx";
 import { Toaster } from "react-hot-toast";
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
 
         {/* Voting Page */}
         <Route path='/votingPage' element={<VotingPage />} />
+        <Route path='/thank-you' element={<ThankYou/> } />
 
         {/* Admin routes */}
         <Route path='/admin/login' element={<AdminLogin />} />
