@@ -76,6 +76,7 @@ const AddContestant = ({onSuccess}) => {
         party: "",
       });
       setPreview(null);
+      alert("contestant added successfully ")
       if (onSuccess) onSuccess();
     } catch (err) {
       setError(err.message);
