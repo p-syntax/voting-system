@@ -96,4 +96,4 @@ process.on('SIGINT', () => {
 // Run server
 startServer();
 
-export { app, server, io };
+export { app, server };
