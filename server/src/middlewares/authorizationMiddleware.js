@@ -1,3 +1,4 @@
+//check the user role 
 export const requireRole=(...roles)=>{
     return (req,res,next)=>{
         if(!req.user){
