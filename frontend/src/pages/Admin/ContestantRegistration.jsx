@@ -51,7 +51,7 @@ const AddContestant = () => {
       formData.append("party", form.party);
       formData.append("image", form.image);
 
-      const res = await fetch("http://localhost:5555/admin/addContestant", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/addContestant`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,

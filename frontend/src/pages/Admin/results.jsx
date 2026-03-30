@@ -95,10 +95,10 @@ const ResultsPage = () => {
 
       try {
         const [cRes, vRes] = await Promise.all([
-          fetch("http://localhost:5555/admin/getContestant?page=1&limit=10000", {
+          fetch(`${import.meta.env.VITE_API_URL}/admin/getContestant?page=1&limit=10000`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          fetch("http://localhost:5555/admin/voters?page=1&limit=10000", {
+          fetch(`${import.meta.env.VITE_API_URL}/admin/voters?page=1&limit=10000`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);

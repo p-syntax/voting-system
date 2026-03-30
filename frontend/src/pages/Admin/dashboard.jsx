@@ -118,8 +118,8 @@ const AdminDashboard = () => {
       setLoading(true); setError("");
       try {
         const [cRes, vRes] = await Promise.all([
-          fetch(`http://localhost:5555/admin/getContestant?page=1&limit=1000`, { headers: { Authorization: `Bearer ${token}` } }),
-          fetch(`http://localhost:5555/admin/voters?page=1&limit=1000`, { headers: { Authorization: `Bearer ${token}` } }),
+          fetch(`${import.meta.env.VITE_API_URL}/admin/getContestant?page=1&limit=1000`, { headers: { Authorization: `Bearer ${token}` } }),
+          fetch(`${import.meta.env.VITE_API_URL}/admin/voters?page=1&limit=1000`, { headers: { Authorization: `Bearer ${token}` } }),
         ]);
         if (cRes.status === 401 || vRes.status === 401) { navigate("/admin/login"); return; }
         const cData = await cRes.json();

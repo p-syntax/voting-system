@@ -155,7 +155,7 @@ const VoterRegistration = () => {
 
       const adminToken = localStorage.getItem("adminToken"); 
 
-      const res = await fetch("http://localhost:5555/admin/registervoter", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/registervoter`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

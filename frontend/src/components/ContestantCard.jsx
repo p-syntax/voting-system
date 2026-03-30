@@ -11,7 +11,7 @@ const ContestantCard = ({ contestant, position, hasVoted, onVoteSuccess }) => {
     setError("");
     setVoting(true);
     try {
-      const res = await fetch("http://localhost:5555/voter/vote", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/voter/vote`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

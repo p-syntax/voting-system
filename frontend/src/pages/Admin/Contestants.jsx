@@ -26,7 +26,7 @@ const Contestants = ({ onAddContestant }) => {
     setError("");
     try {
       const token = localStorage.getItem("adminToken");
-      let url = `http://localhost:5555/admin/getContestant?page=${pageNum}&limit=${limit}`;
+      let url = `${import.meta.env.VITE_API_URL}/admin/getContestant?page=${pageNum}&limit=${limit}`;
       if (searchTerm) url += `&search=${encodeURIComponent(searchTerm)}`;
 
       const res = await fetch(url, {
@@ -64,7 +64,7 @@ const Contestants = ({ onAddContestant }) => {
 
     try {
       const res = await fetch(
-        `http://localhost:5555/admin/deleteContestant/${contestant._id}`,
+        `${import.meta.env.VITE_API_URL}/admin/deleteContestant/${contestant._id}`,
         {
           method: "DELETE",
           headers: {
@@ -107,7 +107,7 @@ const Contestants = ({ onAddContestant }) => {
     try {
       const token = localStorage.getItem("adminToken");
       const res = await fetch(
-        `http://localhost:5555/admin/updateContestant/${editingContestant._id}`,
+        `${import.meta.env.VITE_API_URL}/admin/updateContestant/${editingContestant._id}`,
         {
           method: "PUT",
           headers: {

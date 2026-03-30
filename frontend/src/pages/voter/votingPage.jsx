@@ -33,7 +33,7 @@ const VotingPage = () => {
       setLoading(true);
       setError("");
       try {
-        const res = await fetch(`http://localhost:5555/voter/getcontestants`, {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/voter/getcontestants`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -111,7 +111,7 @@ const VotingPage = () => {
     setCompleting(true);
     setError("");
     try {
-      const res = await fetch(`http://localhost:5555/voter/completeVoting`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/voter/completeVoting`, {
         method: "GET",
         headers: { Authorization: `Bearer ${token}` },
       });

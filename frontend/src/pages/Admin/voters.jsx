@@ -18,7 +18,7 @@ const Voters = ({onAddVoter}) => {
       try {
         const token = localStorage.getItem("adminToken");
         const response = await fetch(
-          `http://localhost:5555/admin/voters?page=${currentPage}&search=${searchTerm}`,
+          `${import.meta.env.VITE_API_URL}/admin/voters?page=${currentPage}&search=${searchTerm}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

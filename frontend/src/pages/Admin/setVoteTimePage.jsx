@@ -46,7 +46,7 @@ const SetVotingTime = () => {
 
       const token = localStorage.getItem("adminToken");
 
-      const res = await fetch("http://localhost:5555/admin/setVotingTime", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/setVotingTime`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

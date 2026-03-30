@@ -146,7 +146,7 @@ const VoterLogin = () => {
     try {
       if (!faceDescriptor) throw new Error("Please capture your image first.");
 
-      const res = await fetch("http://localhost:5555/auth/voter/login", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/voter/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ registrationNumber, fullName, faceDescriptor }),
