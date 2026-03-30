@@ -42,6 +42,10 @@ const AddContestant = ({onSuccess}) => {
     setSuccess("");
     setLoading(true);
     try {
+      const regNoPattern = /^[a-z]{2,5}\d{3}\/\d{4}\/\d{4}$/i;
+      if (!regNoPattern.test(form.registrationNumber.trim())) {
+        throw new Error("Registration number must be e.g. sc200/0461/2022");
+      }
       const token = localStorage.getItem("adminToken");
       const formData = new FormData();
       formData.append("registrationNumber", form.registrationNumber);
