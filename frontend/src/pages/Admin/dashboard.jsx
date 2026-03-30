@@ -149,7 +149,7 @@ const AdminDashboard = () => {
       case "contestants": return <Contestants onAddContestant={() => setActivePage("addContestant")} />;
       case "voters": return <Voters onAddVoter={() => setActivePage("registerVoter")} />;
       case "results": return <ResultsPage />;
-      case "addContestant": return <AddContestant />;
+      case "addContestant": return <AddContestant onSuccess={() => setActivePage("contestants")}/>;
       case "registerVoter": return <VoterRegistration onRegistered={() => setActivePage("voters")} />;
       case "votingTime": return <SetVotingTime />;
       default: return renderOverview();
