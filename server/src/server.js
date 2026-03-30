@@ -13,6 +13,8 @@ import voterRoutes from "./routes/voterRoutes.js"
 
 // Load environment variables
 dotenv.config();
+// Create express app
+const app = express();
 //adding the cors configuration 
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',')
@@ -30,8 +32,7 @@ app.use(
     credentials: true,
   })
 );
-// Create express app
-const app = express();
+
 // Allow JSON request bodies
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
