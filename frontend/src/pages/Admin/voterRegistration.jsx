@@ -85,7 +85,7 @@ const VoterRegistration = () => {
     if (!error) return;
     toast.error(error, { id: "voter-registration-error" });
   }, [error]);
-  /* ---------------- Load face-api models ---------------- */
+  /*  Load face-api models*/
   useEffect(() => {
     const loadModels = async () => {
       const MODEL_URL = "/models";
@@ -99,7 +99,7 @@ const VoterRegistration = () => {
     loadModels();
   }, []);
 
-  /* ---------------- Start Camera ---------------- */
+  /*  Start Camera  */
   const startCamera = async () => {
     setError("");
     try {
@@ -113,13 +113,13 @@ const VoterRegistration = () => {
     }
   };
 
-  /* ---------------- Stop Camera ---------------- */
+  /*  Stop Camera  */
   const stopCamera = () => {
     streamRef.current?.getTracks().forEach((track) => track.stop());
     setCameraActive(false);
   };
 
-  /* ---------------- Capture Face ---------------- */
+  /*  Capture Face  */
   const captureFace = async () => {
     setError("");
     if (!modelsLoaded) return setError("Models are still loading...");
@@ -143,7 +143,7 @@ const VoterRegistration = () => {
     }
   };
 
-  /* ---------------- Register Voter ---------------- */
+  /*  Register Voter  */
   const handleRegistration = async () => {
     setError("");
     setLoading(true);
@@ -153,7 +153,7 @@ const VoterRegistration = () => {
         throw new Error("All fields and face capture are required.");
       }
 
-      const adminToken = localStorage.getItem("adminToken"); // 👈 grab admin token
+      const adminToken = localStorage.getItem("adminToken"); 
 
       const res = await fetch("http://localhost:5555/admin/registervoter", {
         method: "POST",
@@ -180,7 +180,7 @@ const VoterRegistration = () => {
     }
   };
 
-  /* ---------------- UI ---------------- */
+  /*  UI  */
   return (
     <div className="min-h-screen bg-slate-100 px-4 py-10 flex items-center justify-center">
       <div className="w-full max-w-2xl overflow-hidden rounded-3xl border border-slate-100 shadow-sm bg-white">
