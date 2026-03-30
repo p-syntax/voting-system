@@ -13,11 +13,26 @@ import voterRoutes from "./routes/voterRoutes.js"
 
 // Load environment variables
 dotenv.config();
+//adding the cors configuration 
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',')
+  : [];
+app.use(
+  cors({
+    origin: function (origin, callback) {
 
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      } else {
+        return callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+  })
+);
 // Create express app
 const app = express();
 // Allow JSON request bodies
-app.use(cors({ origin: "http://localhost:5173" }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -46,12 +61,7 @@ global.io = io;
 // Security middleware
 app.use(helmet());
 
-app.use(
-  cors({
-    origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
-    credentials: true,
-  })
-);
+
 
 
 // Generic error handler - ensure JSON responses for errors (prevents HTML error pages)
