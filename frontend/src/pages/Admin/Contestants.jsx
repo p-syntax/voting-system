@@ -56,7 +56,7 @@ const Contestants = ({ onAddContestant }) => {
   const handleDeleteContestant = async (contestant) => {
     const token = localStorage.getItem("adminToken");
 
-    // ✅ confirm first (simple “alert before deleting”)
+ 
     const ok = window.confirm(
       `You are about to delete:\n\nName: ${contestant.name}\nReg No: ${contestant.registrationNumber}\nPosition: ${contestant.position}\n\nContinue?`
     );
