@@ -70,7 +70,7 @@ const VoterLogin = () => {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const navigate = useNavigate();
-  const {login}=useAuth
+  const {login}=useAuth()
 
   const [registrationNumber, setRegistrationNumber] = useState("");
   const [fullName, setFullName] = useState("");
@@ -170,7 +170,7 @@ const VoterLogin = () => {
   return (
     <div className="min-h-screen bg-slate-100 px-4 py-10 flex items-center justify-center">
       <div className="w-full max-w-6xl overflow-hidden rounded-3xl border border-slate-100 shadow-sm bg-white grid grid-cols-1 lg:grid-cols-2">
-        {/* Image panel (shows on mobile; sits on top when stacked) */}
+       
         <div className="relative block h-64 sm:h-80 lg:h-auto">
           <img
             src={voteWall}
@@ -196,7 +196,7 @@ const VoterLogin = () => {
           </div>
         </div>
 
-        {/* Form panel */}
+       
         <div className="relative p-7 sm:p-10">
           <div
             className="absolute left-0 top-0 bottom-0 w-1.5"
