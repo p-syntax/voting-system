@@ -1,5 +1,6 @@
 import { validateDescriptor } from "../utilis/faceMatch.js"
 import {User} from "../models/user.js"
+import mongoose from "mongoose";
 import { Contestant } from "../models/Contestants.js";
 import { VotingWindow } from "../models/setVoteTime.js";
 export const voterRegistration = async(req,res) =>{
@@ -47,6 +48,50 @@ export const voterRegistration = async(req,res) =>{
 
     }
 }
+export const deleteVoter = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid voter ID",
+      });
+    }
+
+ 
+    const voter = await User.findOne({ _id: id, role: "voter" });
+
+    if (!voter) {
+      return res.status(404).json({
+        success: false,
+        error: "Voter not found",
+      });
+    }
+
+    if (voter.hasVoted) {
+      return res.status(403).json({
+        success: false,
+        error: "Cannot delete voter after they have voted",
+      });
+    }
+
+    await User.deleteOne({ _id: id });
+
+    return res.json({
+      success: true,
+      message: "Voter deleted successfully",
+    });
+
+  } catch (error) {
+    console.error("Delete voter error:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Failed to delete voter",
+      message: error.message,
+    });
+  }
+};
 export const getVoters=async(req,res)=>{
     try{
         const{page=1,limit=50,search} =req.query
@@ -86,97 +131,7 @@ export const getVoters=async(req,res)=>{
     });
   }
 }
-//update voter 
-export const updateVoter = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { registrationNumber, fullName, faceDescriptor, isActive } = req.body;
 
-    // Validate voter ID
-    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid voter ID',
-      });
-    }
-
-    // Find voter
-    const voter = await User.findOne({ _id: id, role: 'voter' });
-
-    if (!voter) {
-      return res.status(404).json({
-        success: false,
-        error: 'Voter not found',
-      });
-    }
-
-    // Check if voter has already voted (optional - prevent updates after voting)
-    if (voter.hasVoted) {
-      return res.status(403).json({
-        success: false,
-        error: 'Cannot update voter details after they have voted',
-      });
-    }
-
-    // If updating registration number, check if it's unique
-    if (registrationNumber && registrationNumber !== voter.registrationNumber) {
-      const existingVoter = await User.findOne({
-        registrationNumber: registrationNumber.toUpperCase(),
-        _id: { $ne: id }, // Exclude current voter
-        role: 'voter',
-      });
-
-      if (existingVoter) {
-        return res.status(400).json({
-          success: false,
-          error: 'Registration number already exists',
-        });
-      }
-    }
-
-    // Validate face descriptor if provided
-    if (faceDescriptor) {
-      const validDescriptor = validateDescriptor(faceDescriptor);
-      if (!validDescriptor.isValid) {
-        return res.status(400).json({
-          success: false,
-          error: validDescriptor.error,
-        });
-      }
-    }
-
-    // Update fields
-    if (registrationNumber) {
-      voter.registrationNumber = registrationNumber.toUpperCase();
-    }
-    if (fullName) {
-      voter.fullName = fullName;
-    }
-    if (faceDescriptor) {
-      voter.faceDescriptor = faceDescriptor;
-    }
-    if (isActive !== undefined) {
-      voter.isActive = isActive;
-    }
-
-    // Save updated voter
-    await voter.save();
-
-    res.json({
-      success: true,
-      message: 'Voter updated successfully',
-      voter: voter.toPublicJSON(),
-    });
-
-  } catch (error) {
-    console.error('Update voter error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to update voter',
-      message: error.message,
-    });
-  }
-};
 // create contestant
 export const addContestant = async (req, res) => {
   try {
@@ -328,7 +283,7 @@ export const getContestant= async (req, res) => {
     });
   }
 };
-// cdeleting a voter 
+
 export const deleteContestant = async (req, res) => {
   try {
     const { id } = req.params;
