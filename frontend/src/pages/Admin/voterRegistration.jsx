@@ -65,10 +65,10 @@ const IconCheck = ({ className = "w-4 h-4" }) => (
   </svg>
 );
 
-const VoterRegistration = ({onRegistered}) => {
+const VoterRegistration = ({ onRegistered }) => {
   const videoRef = useRef(null);
+  const canvasRef = useRef(null);
   const streamRef = useRef(null);
-  
 
   const [registrationNumber, setRegistrationNumber] = useState("");
   const [fullName, setFullName] = useState("");
@@ -79,12 +79,14 @@ const VoterRegistration = ({onRegistered}) => {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  /* toast setter for errors */
+
+  /* Show toast on error */
   useEffect(() => {
     if (!error) return;
     toast.error(error, { id: "voter-registration-error" });
   }, [error]);
-  /*  Load face-api models*/
+
+  /* Load face-api models */
   useEffect(() => {
     const loadModels = async () => {
       const MODEL_URL = "/models";
@@ -98,7 +100,7 @@ const VoterRegistration = ({onRegistered}) => {
     loadModels();
   }, []);
 
-  /*  Start Camera  */
+  /* Start Camera */
   const startCamera = async () => {
     setError("");
     try {
@@ -112,13 +114,18 @@ const VoterRegistration = ({onRegistered}) => {
     }
   };
 
-  /*  Stop Camera  */
+  /* Stop Camera */
   const stopCamera = () => {
     streamRef.current?.getTracks().forEach((track) => track.stop());
+    // Clear the landmark canvas when camera stops
+    if (canvasRef.current) {
+      const ctx = canvasRef.current.getContext("2d");
+      ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    }
     setCameraActive(false);
   };
 
-  /*  Capture Face  */
+  /* Capture Face + Draw Landmarks */
   const captureFace = async () => {
     setError("");
     if (!modelsLoaded) return setError("Models are still loading...");
@@ -132,17 +139,32 @@ const VoterRegistration = ({onRegistered}) => {
 
       if (!detection) return setError("No face detected. Try again.");
 
-      const descriptorArray = Array.from(detection.descriptor);
-      console.log("Face descriptor:", descriptorArray);
+      // Match canvas dimensions to the actual video resolution
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      const displaySize = { width: video.videoWidth, height: video.videoHeight };
+      canvas.width = displaySize.width;
+      canvas.height = displaySize.height;
 
+      faceapi.matchDimensions(canvas, displaySize);
+
+      // Resize detections to match display size and draw
+      const resized = faceapi.resizeResults(detection, displaySize);
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      faceapi.draw.drawDetections(canvas, resized);
+      faceapi.draw.drawFaceLandmarks(canvas, resized);
+
+      const descriptorArray = Array.from(detection.descriptor);
       setFaceDescriptor(descriptorArray);
-      stopCamera();
+
+      // Don't stop camera immediately so user can see the landmarks drawn
     } catch (err) {
       setError("Failed to capture face. " + err.message);
     }
   };
 
-  /*  Register Voter  */
+  /* Register Voter */
   const handleRegistration = async () => {
     setError("");
     setLoading(true);
@@ -152,7 +174,7 @@ const VoterRegistration = ({onRegistered}) => {
         throw new Error("All fields and face capture are required.");
       }
 
-      const adminToken = localStorage.getItem("adminToken"); 
+      const adminToken = localStorage.getItem("adminToken");
 
       const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/registervoter`, {
         method: "POST",
@@ -179,7 +201,7 @@ const VoterRegistration = ({onRegistered}) => {
     }
   };
 
-  /*  UI  */
+  /* UI */
   return (
     <div className="min-h-screen bg-slate-100 px-4 py-10 flex items-center justify-center">
       <div className="w-full max-w-2xl overflow-hidden rounded-3xl border border-slate-100 shadow-sm bg-white">
@@ -208,7 +230,6 @@ const VoterRegistration = ({onRegistered}) => {
                 Enter details and capture an image.
               </p>
             </div>
-
 
             <div className="space-y-4">
               <div>
@@ -250,33 +271,42 @@ const VoterRegistration = ({onRegistered}) => {
                     cameraActive ? "block" : "hidden",
                   ].join(" ")}
                 >
+                  {/* Video + canvas overlay stacked */}
                   <div className="relative">
                     <video ref={videoRef} muted className="w-full" />
+                    <canvas
+                      ref={canvasRef}
+                      className="absolute top-0 left-0 w-full h-full"
+                    />
                     <div className="absolute left-3 top-3 inline-flex items-center gap-2 rounded-xl bg-white/90 border border-slate-100 px-3 py-1.5 text-xs font-extrabold text-slate-700">
                       <IconCamera className="w-4 h-4 text-brand-700" />
                       Camera
                     </div>
                   </div>
 
-                  <div className="p-3 bg-white/80 border-t border-slate-100">
+                  <div className="p-3 bg-white/80 border-t border-slate-100 flex gap-2">
                     <button
                       onClick={captureFace}
                       className="app-btnPrimary w-full py-3 rounded-2xl"
                     >
                       Take photo
                     </button>
+                    {faceDescriptor && (
+                      <button
+                        onClick={stopCamera}
+                        className="app-btnPrimary w-full py-3 rounded-2xl"
+                      >
+                        Confirm
+                      </button>
+                    )}
                   </div>
                 </div>
 
                 {!cameraActive && (
                   <button
                     onClick={() => {
-                      if (faceDescriptor) {
-                        setFaceDescriptor(null);
-                        startCamera();
-                      } else {
-                        startCamera();
-                      }
+                      setFaceDescriptor(null);
+                      startCamera();
                     }}
                     disabled={!modelsLoaded}
                     className={[
@@ -293,7 +323,7 @@ const VoterRegistration = ({onRegistered}) => {
                   </button>
                 )}
 
-                {faceDescriptor && (
+                {faceDescriptor && !cameraActive && (
                   <div className="mt-3 rounded-2xl bg-brand-50 border border-brand-200 px-4 py-3 text-sm font-semibold text-brand-800 flex items-center gap-2">
                     <span className="inline-flex items-center justify-center w-7 h-7 rounded-xl bg-brand-500 text-white">
                       <IconCheck className="w-4 h-4" />
