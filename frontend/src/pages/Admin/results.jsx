@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
+import "./ResultsPage.css";
 
 const ProgressBar = ({ labelLeft, labelRight, value, total, accent = "bg-brand-600" }) => {
   const safeTotal = total > 0 ? total : 1;
@@ -28,7 +29,7 @@ const ProgressBar = ({ labelLeft, labelRight, value, total, accent = "bg-brand-6
 
 const WinnerCard = ({ position, winner }) => {
   return (
-    <div className="app-card border-b border-black ">
+    <div className="app-card border-b border-black">
       <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
         <div>
           <p className="text-xs uppercase tracking-wider text-slate-500 font-bold">
@@ -131,10 +132,8 @@ const ResultsPage = () => {
     for (const c of contestants) {
       const pos = (c.position || "Unspecified").trim() || "Unspecified";
       const current = map.get(pos);
-
       const cVotes = c.votes ?? 0;
       const curVotes = current?.votes ?? 0;
-
       if (!current || cVotes > curVotes) map.set(pos, c);
     }
     return Array.from(map.entries()).sort((a, b) => a[0].localeCompare(b[0]));
@@ -162,16 +161,26 @@ const ResultsPage = () => {
   return (
     <div className="app-page py-8">
       <div className="app-container">
-       
 
-        {error && <div className="app-alertError mb-5">{error}</div>}
+        
+        <div className="no-print mb-6 flex justify-end">
+          <button
+            onClick={() => window.print()}
+            className="app-btnPrimary"
+          >
+            Download Results
+          </button>
+        </div>
+
+        {error && <div className="app-alertError mb-5 no-print">{error}</div>}
 
         {loading ? (
-          <div className="app-card p-10">
+          <div className="app-card p-10 no-print">
             <div className="text-sm text-slate-500">Loading results...</div>
           </div>
         ) : (
-          <>
+          // Everything inside this div will be printed
+          <div id="results-printable">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <div className="app-card p-5">
                 <p className="text-xs uppercase tracking-wider text-slate-500 font-bold">
@@ -277,7 +286,7 @@ const ResultsPage = () => {
                 ))}
               </div>
             )}
-          </>
+          </div>
         )}
       </div>
     </div>
