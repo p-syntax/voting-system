@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext.jsx";
 
-const Voters = ({onAddVoter}) => {
+const Voters = ({ onAddVoter }) => {
   const [voters, setVoters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
+  const [deletingId, setDeletingId] = useState(null);
+  const [deleteError, setDeleteError] = useState(null);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -46,6 +48,43 @@ const Voters = ({onAddVoter}) => {
     setCurrentPage(1);
   };
 
+  const handleDelete = async (voter) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${voter.fullName}"? This action cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    setDeletingId(voter._id);
+    setDeleteError(null);
+
+    try {
+      const token = localStorage.getItem("adminToken");
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/admin/deleteVoter/${voter._id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || `HTTP error! status: ${response.status}`);
+      }
+
+     
+      setVoters((prev) => prev.filter((v) => v._id !== voter._id));
+    } catch (err) {
+      setDeleteError(err.message);
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   if (!user || user.role !== "admin") {
     return <div className="app-alertError">Access denied. Admins only.</div>;
   }
@@ -53,20 +92,19 @@ const Voters = ({onAddVoter}) => {
   return (
     <div>
       <div className="mb-4 flex items-start justify-between gap-4 flex-wrap">
-        
-
         <div className="w-full flex flex-wrap items-end justify-between gap-3">
-          <div className="w-full max-w-md"> <label className="app-label">Search</label>
-          <input
-            type="text"
-            placeholder="Search by name, email or ID"
-            value={searchTerm}
-            onChange={handleSearch}
-            className="app-input"
-          />
+          <div className="w-full max-w-md">
+            <label className="app-label">Search</label>
+            <input
+              type="text"
+              placeholder="Search by name, email or ID"
+              value={searchTerm}
+              onChange={handleSearch}
+              className="app-input"
+            />
           </div>
-         
-           <button
+
+          <button
             type="button"
             onClick={() => onAddVoter?.()}
             className="app-btnPrimary whitespace-nowrap"
@@ -83,6 +121,7 @@ const Voters = ({onAddVoter}) => {
       )}
 
       {error && <div className="app-alertError mb-4">{error}</div>}
+      {deleteError && <div className="app-alertError mb-4">{deleteError}</div>}
 
       {!loading && !error && (
         <div className="app-tableWrap">
@@ -104,7 +143,10 @@ const Voters = ({onAddVoter}) => {
                   </tr>
                 ) : (
                   voters.map((voter, index) => (
-                    <tr key={voter._id} className={`app-tr app-trHover ${index % 2 === 0 ? "bg-white" : "bg-brand-50/10"}`}>
+                    <tr
+                      key={voter._id}
+                      className={`app-tr app-trHover ${index % 2 === 0 ? "bg-white" : "bg-brand-50/10"}`}
+                    >
                       <td className="app-td font-mono text-xs text-slate-700 font-bold">
                         {voter.registrationNumber}
                       </td>
@@ -117,7 +159,13 @@ const Voters = ({onAddVoter}) => {
                         </div>
                       </td>
                       <td className="app-td">
-                        <button className="app-btnOutline">View</button>
+                        <button
+                          onClick={() => handleDelete(voter)}
+                          disabled={deletingId === voter._id}
+                          className={deletingId === voter._id ? "app-btnDisabled" : "app-btnOutline"}
+                        >
+                          {deletingId === voter._id ? "Deleting..." : "Delete"}
+                        </button>
                       </td>
                     </tr>
                   ))
@@ -138,9 +186,17 @@ const Voters = ({onAddVoter}) => {
                   <div className="flex-1 min-w-0">
                     <p className="font-extrabold text-slate-900 truncate">{voter.fullName}</p>
                     <p className="text-xs text-slate-600 font-mono font-bold">{voter.registrationNumber}</p>
-                    {voter.email && <p className="text-xs text-slate-700 truncate font-semibold">{voter.email}</p>}
+                    {voter.email && (
+                      <p className="text-xs text-slate-700 truncate font-semibold">{voter.email}</p>
+                    )}
                   </div>
-                  <button className="app-btnOutline">View</button>
+                  <button
+                    onClick={() => handleDelete(voter)}
+                    disabled={deletingId === voter._id}
+                    className={deletingId === voter._id ? "app-btnDisabled" : "app-btnOutline"}
+                  >
+                    {deletingId === voter._id ? "Deleting..." : "Delete"}
+                  </button>
                 </div>
               ))
             )}
