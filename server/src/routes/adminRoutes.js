@@ -1,5 +1,5 @@
 import express from "express";
-import {voterRegistration,getVoters,addContestant,getContestant,updateVoter,updateContestant,setVotingTime,deleteContestant } from "../controllers/adminControllers.js"
+import {voterRegistration,getVoters,addContestant,getContestant,updateContestant,setVotingTime,deleteContestant,deleteVoter } from "../controllers/adminControllers.js"
 import { authenticate } from "../middlewares/authMiddleware.js";
 import { upload } from "../middlewares/upload.js";
 import { admin } from "../middlewares/authorizationMiddleware.js";
@@ -9,7 +9,7 @@ router.use( authenticate,admin)
 //voter routes
 router.post('/registervoter',voterRegistration);
 router.get('/voters',getVoters);
-router.post('/updatevoter',updateVoter);
+router.delete('/deleteVoter/:id',deleteVoter);
 //contestants routes 
 router.post('/addContestant',upload.single("image"),addContestant);
 router.get('/getcontestant',getContestant);
