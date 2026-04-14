@@ -161,14 +161,19 @@ const AddContestant = ({onSuccess}) => {
 
               <div>
                 <label className="app-label">Position</label>
-                <input
-                  type="text"
+                <select
                   name="position"
-                  placeholder="e.g. President"
                   value={form.position}
                   onChange={handleChange}
                   className="app-inputSoft"
-                />
+                >
+                  <option value="">Select a position</option>
+                  <option value="President">President</option>
+                  <option value="Vice President">Vice President</option>
+                  <option value="Secretary General">Secretary General</option>
+                  <option value="Treasurer">Treasurer</option>
+                  <option value="PRO">PRO</option>
+                </select>
               </div>
 
               <div>
